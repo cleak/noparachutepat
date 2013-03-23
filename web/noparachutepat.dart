@@ -1,12 +1,12 @@
 import 'dart:html';
-import 'pit.dart';
+import 'dart:isolate';
+
+import 'zz.dart';
+
 import 'package:vector_math/vector_math.dart';
 
-void main() {
-  initCanvas();
-}
-
 void initCanvas() {
+  //print("Started");
   var body = query('body');
   var canvasContainer = query("#canvas-container");
   
@@ -23,18 +23,22 @@ void initCanvas() {
   //c.fillStyle = '#AAAAAA';
   //c.fillRect(10, 10, width - 20, height - 20);
   
-  var p = new Pit(100);
-  c.strokeStyle = '#888888';
+  var p = new Pit();
+  c.lineWidth = 2;
+  //c.strokeStyle = '#888888';
+  c.strokeStyle = '#555555';
   c.fillStyle = '#111111';
   c.translate(width / 2, 0);
-  p.draw(c, new vec2(1, 10));
+  p.scale = new vec2(1, 10);
+  p.draw(c);
 }
 
-void reverseText(MouseEvent event) {
-  var text = query("#sample_text_id").text;
-  var buffer = new StringBuffer();
-  for (int i = text.length - 1; i >= 0; i--) {
-    buffer.write(text[i]);
-  }
-  query("#sample_text_id").text = buffer.toString();
+void main() {
+  //initCanvas();
+  
+  var fs = new FourierSeries.linear(10, 20);
+  print(fs.evaluate(1));
+  
+  World world = new World();
+  world.start();
 }
