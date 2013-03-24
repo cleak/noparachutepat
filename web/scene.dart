@@ -33,9 +33,9 @@ class Scene {
   /**
    * Draws each object in the scene on the given canvas context [c].
    */
-  void draw(CanvasRenderingContext2D c) {
-    _drawables.forEach((drawable) {
-      drawable(c);
-    });
+  void draw(World world) {
+    for(var drawable in _drawables) {
+      drawable(world);
+    }
   }
 }

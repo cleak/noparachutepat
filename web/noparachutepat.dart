@@ -30,7 +30,6 @@ void initCanvas() {
   c.fillStyle = '#111111';
   c.translate(width / 2, 0);
   p.scale = new vec2(1, 10);
-  p.draw(c);
 }
 
 void main() {

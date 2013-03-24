@@ -27,8 +27,8 @@ class Pit {
    * Constructs a new pit with the given number of vertical [slices].
    */
   Pit() {
-    _widths = new List(_pageCount);
-    _offsets = new List(_pageCount); 
+    _widths = new List<List<double>>();
+    _offsets = new List<List<double>>(); 
     
     // TODO: Setup random initial condition
     _offsetGenerator = new FourierSeries.linear(100, 0.15);
@@ -36,8 +36,8 @@ class Pit {
     
     // Generate pages
     for (var i = 0; i < _pageCount; i++) {
-      _widths[i] = generateWidths(i * _pageSize, 200.0);
-      _offsets[i] = generateOffsets(i * _pageSize, 0.0);
+      _widths.add(generateWidths(i * _pageSize, 200.0));
+      _offsets.add(generateOffsets(i * _pageSize, 0.0));
     }
   }
   
@@ -70,7 +70,7 @@ class Pit {
     
     _widths.add(generateWidths(_pageSize * (_startIndex + _widths.length),
           _widths.last.last));
-    _offsets.add(generateWidths(_pageSize * (_startIndex + _offsets.length),
+    _offsets.add(generateOffsets(_pageSize * (_startIndex + _offsets.length),
         _offsets.last.last));
     
     _startIndex++;
@@ -178,29 +178,28 @@ class Pit {
   /**
    * Draws the pit on the given 2d canvas [context] with its current [scale].
    */
-  void draw(CanvasRenderingContext2D c) {
-    var firstIndex = _pageSize * _startIndex;
-    var lastIndex = firstIndex + _pageSize * _widths.length;
+  void draw(World world) {
+    /*var firstIndex = _pageSize * _startIndex;
+    var lastIndex = firstIndex + _pageSize * _widths.length;*/
     
-    // Left side
+    var firstIndex = (world.translation.y / scale.y).toInt() - 1;
+    firstIndex = math.max(0, firstIndex);
+    
+    var lastIndex = ((world.translation.y + world.canvas.height) / scale.y).toInt() + 3;
+    lastIndex = math.max(0, lastIndex);
+    
+    var c = world.context;
+    
+    if (lastIndex == 0) {
+      return;
+    }
+    
+    // Draw both sides
+    c.beginPath();
     for (var side = 0; side < 2; side++) {
-      // Filled
-      c.beginPath();
-      for (var i = firstIndex + 1; i < lastIndex - 2; i++) {
-        var p = getWallPoint(i, side == 0, scale);
-        
-        var p0 = getWallPoint(i - 1, side == 0, scale);
-        var p1 = getWallPoint(i + 1, side == 0, scale);
-        
-        var c0 = (p + p0) / 2;
-        var c1 = (p + p1) / 2;
-        if (i == 1) {
-          c.moveTo(p0.x, p0.y);
-        }
-        c.bezierCurveTo(c0.x, c0.y, c1.x, c1.y, p1.x, p1.y);
-      }
+
       
-      var lastPoint = getWallPoint(lastIndex - 1, side == 0, scale);
+      /*var lastPoint = getWallPoint(lastIndex - 1, side == 0, scale);
       lastPoint.x = c.canvas.width / 2;
       
       if (side == 0) {
@@ -208,10 +207,61 @@ class Pit {
       }
       
       c.lineTo(lastPoint.x, lastPoint.y);
-      c.lineTo(lastPoint.x, 0);
-      c.fill();
+      c.lineTo(lastPoint.x, 0);*/
+    }
+    
+    // Left side
+    var startPoint = getWallPoint(firstIndex, true, scale);
+    c.moveTo(startPoint.x, startPoint.y);
+    
+    for (var i = firstIndex + 1; i < lastIndex - 2; i++) {
+      _addCurveSegment(c, i - 1, i, i + 1, true);
+    }
+    
+    var endPoint = getWallPoint(lastIndex - 2, false, scale);
+    c.lineTo(endPoint.x, endPoint.y);
+    
+    // Right side
+    for (var i = lastIndex - 3; i >= firstIndex + 1; i--) {
+      _addCurveSegment(c, i + 1, i, i - 1, false);
+    }
+    
+    //c.moveTo(startPoint.x, startPoint.y);
+    c.fill();
+    c.stroke();
+    
+    // Add side lines for top
+    if (firstIndex == 0) {
+      var wallPointL = getWallPoint(0, true, scale);
+      var wallPointR = getWallPoint(0, false, scale);
+      
+      // Left side
+      c.beginPath();
+      c.moveTo(-2048, wallPointL.y);
+      c.lineTo(wallPointL.x, wallPointL.y);
+      c.stroke();
+      
+      // Right side
+      c.beginPath();
+      c.moveTo(2048, wallPointR.y);
+      c.lineTo(wallPointR.x, wallPointR.y);
       c.stroke();
     }
+  }
+  
+  /**
+   * Adds a bezier curve point using the given wall indices.
+   */
+  void _addCurveSegment(CanvasRenderingContext2D c, int p1Index, int p2Index, int p3Index, bool leftSide) {
+    var p = getWallPoint(p2Index, leftSide, scale);
+    
+    var p0 = getWallPoint(p1Index, leftSide, scale);
+    var p1 = getWallPoint(p3Index, leftSide, scale);
+    
+    var c0 = (p + p0) / 2;
+    var c1 = (p + p1) / 2;
+    
+    c.bezierCurveTo(c0.x, c0.y, c1.x, c1.y, p1.x, p1.y);
   }
   
   /**
