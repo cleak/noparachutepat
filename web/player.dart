@@ -10,7 +10,7 @@ class Player {
   //static final GRAVITY = new vec2(0, 1.8);
   static final GRAVITY = new vec2(0, 2.5);
   static const SIDE_SPEED = 200.0;
-  static final DRAG = 0.004;
+  static final DRAG = 0.002;
   
   bool movingLeft = false;
   bool movingRight = false;

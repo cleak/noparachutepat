@@ -4,6 +4,8 @@ part of zz;
  * Represents the entire game world and all objects in it.
  */
 class World {
+  double best = 0.0;
+  
   /// The root scene of the world.
   Scene _rootScene;
   
@@ -34,6 +36,8 @@ class World {
   /// List of keyboard keys and whether they're pressed or not.
   List<bool> keys;
   
+  DivElement score;
+  
   /**
    * Constructs a new empty game world.
    */
@@ -43,6 +47,7 @@ class World {
   
   void start() {
     const double TARGET_FPS = 60.0;
+    score = query("#score-text");
     
     updatables = new List<Updatable>();
     
@@ -130,9 +135,22 @@ class World {
   }
   
   /**
+   * Formats the given distance as a score string and returns it.
+   */
+  String formatScore(double distnace) {
+    return math.max(distnace / Player.PIXELS_PER_METER, 0).toStringAsFixed(1) + 'm';
+  }
+  
+  /**
    * Resets the world.
    */
   void reset() {
+    if (player.position.y > best) {
+      best = player.position.y;
+      var bestScoreDisplay = query('#best-score');
+      bestScoreDisplay.text = formatScore(best);
+    }
+    
     player.position = new vec2(-40, 70 + START_Y);
     player.velocity = new vec2(0, 0);
     pit = new Pit();
@@ -163,6 +181,8 @@ class World {
       updatable(timePassed);
     }
     lastUpdate = now;
+    
+    score.innerHtml = formatScore(player.position.y);
     
     translation = player.position + new vec2(-canvas.width / 2, -100);
     

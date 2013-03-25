@@ -117,8 +117,8 @@ class Pit {
    * Generates a page of widths starting at the given sliceIndex with the given [startWidth].
    */
   List<double> generateWidths(int sliceIndex, double startWidth) {
-    var maxWidth = 550.0;
-    var minWidth = 250.0;
+    var maxWidth = 450.0;
+    var minWidth = 245.0;
     var maxWidthDelta = 50.0;
     
     var widths = new List<double>(_pageSize);

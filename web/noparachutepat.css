@@ -5,3 +5,30 @@ body {
   padding: 0;
   overflow: hidden;
 }
+
+#score {
+  font-family: 'Signika', sans-serif;
+  font-weight: 600;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  font-size: 24pt;
+  padding: 0.2em;
+  text-align: right;
+}
+
+#score div{
+  position: relative;
+  padding: 0em;
+}
+
+#best-score {
+  font-family: 'Signika', sans-serif;
+  font-weight: 600;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  font-size: 19pt;
+  padding: 0.2em;
+  color: #33CC33;
+}
