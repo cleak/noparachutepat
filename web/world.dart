@@ -27,7 +27,12 @@ class World {
   
   Player player;
   
+  Pit pit;
+  
   const START_Y = -600.0;
+  
+  /// List of keyboard keys and whether they're pressed or not.
+  List<bool> keys;
   
   /**
    * Constructs a new empty game world.
@@ -40,6 +45,12 @@ class World {
     const double TARGET_FPS = 60.0;
     
     updatables = new List<Updatable>();
+    
+    keys = new List<bool>(0x100);
+    
+    for (var i = 0; i < keys.length; i++) {
+      keys[i] = false;
+    }
     
     // TODO: Make this a param somewhere.
     var canvasContainer = query("#canvas-container");
@@ -55,23 +66,30 @@ class World {
     context.fillRect(0, 0, width, height);
     
     // Create and draw the pit
-    var p = new Pit();
     context.lineWidth = 2;
     context.strokeStyle = '#555555';
     context.fillStyle = '#111111';
     translation = new vec2(-width / 2, START_Y);
     
-    p.scale = new vec2(1, 10);
-    _rootScene.add((c) => p.draw(c));
+    _rootScene.add((c) => pit.draw(c));
     
     // Create a random rect
     var rect = new BoundingRect();
     
     player = new Player();
-    player.position = new vec2(-40, 70 + START_Y);
+    
+    reset();
     
     updatables.add(player.update);
+    updatables.add((double timePassed) {
+      if (player.boundingRect.isCollision(pit)) {
+        reset();
+      }
+    });
+    
     _rootScene.add(player.draw);
+    
+    window.onResize.listen((e) => resize());
     
     /*_rootScene.add((c) {
       if (rect.isCollision(p)) {
@@ -88,31 +106,27 @@ class World {
     });
     
     window.onKeyDown.listen((e) {
-      switch (e.keyCode) {
-        case KeyCode.UP:
-        case KeyCode.W:
-          player.position.y -= 2;
-          break;
-
-        case KeyCode.DOWN:
-        case KeyCode.R:
-          player.position.y += 2;
-          break;
-
-        case KeyCode.LEFT:
-        case KeyCode.A:
-          player.position.x -= 2;
-          break;
-
-        case KeyCode.RIGHT:
-        case KeyCode.S:
-          player.position.x += 2;
-          break;
+      if (e.keyCode >= keys.length) { 
+        return;
       }
+      keys[e.keyCode] = true;
     });
-    canvas.onKeyDown.listen((e) => print("Hello!"));
-    canvas.onKeyPress.listen((e) => print("Key press!"));
-    canvas.onKeyUp.listen((e) => print("Key up!"));
+    
+    window.onKeyUp.listen((e) {
+      if (e.keyCode >= keys.length) { 
+        return;
+      }
+      keys[e.keyCode] = false;
+    });
+  }
+  
+  /**
+   * Updates the input, propigating key presses as appropriate.
+   */
+  void updateInput() {
+    player.movingLeft = (keys[KeyCode.LEFT] || keys[KeyCode.A]);
+    
+    player.movingRight =  (keys[KeyCode.RIGHT] || keys[KeyCode.S]);
   }
   
   /**
@@ -120,6 +134,17 @@ class World {
    */
   void reset() {
     player.position = new vec2(-40, 70 + START_Y);
+    player.velocity = new vec2(0, 0);
+    pit = new Pit();
+    pit.scale = new vec2(1, 10);
+  }
+  
+  /**
+   * Handles resizes.
+   */
+  void resize() {
+    canvas.width = document.body.scrollWidth;
+    canvas.height = document.body.scrollHeight;
   }
   
   /**
@@ -127,6 +152,7 @@ class World {
    */
   void _run(Timer timer) {
     // Run updates
+    updateInput();
     var now = new DateTime.now();
     if (lastUpdate == null) {
       lastUpdate = now;
@@ -147,7 +173,7 @@ class World {
     context.fillRect(translation.x, translation.y, canvas.width, canvas.height);
     context.fillStyle = '#eeeeee';
     if (translation.y < 0) {
-      context.fillRect(translation.x, translation.y, canvas.width, math.min(-translation.y, canvas.height));
+      context.fillRect(translation.x, translation.y, canvas.width, math.min(-translation.y + 1, canvas.height));
     }
     
     // Draw

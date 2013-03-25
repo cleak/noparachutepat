@@ -23,21 +23,27 @@ class Pit {
   FourierSeries _widthGenerator;
   FourierSeries _offsetGenerator;
   
+  math.Random _rand;
+  
   /**
    * Constructs a new pit with the given number of vertical [slices].
    */
-  Pit() {
+  Pit([int seed=1337]) {
     _widths = new List<List<double>>();
     _offsets = new List<List<double>>(); 
     
     // TODO: Setup random initial condition
-    _offsetGenerator = new FourierSeries.linear(100, 0.15);
-    _widthGenerator = new FourierSeries.linear(100, 0.15);
+    _offsetGenerator = new FourierSeries.linear(200, 0.15);
+    _widthGenerator = new FourierSeries.linear(200, 0.15);
+    
+    _rand = new math.Random(seed);
     
     // Generate pages
-    for (var i = 0; i < _pageCount; i++) {
-      _widths.add(generateWidths(i * _pageSize, 200.0));
-      _offsets.add(generateOffsets(i * _pageSize, 0.0));
+    _widths.add(generateWidths(0, 200.0));
+    _offsets.add(generateOffsets(0, 0.0));
+    for (var i = 1; i < _pageCount; i++) {
+      _widths.add(generateWidths(i * _pageSize, _widths[i - 1].last));
+      _offsets.add(generateOffsets(i * _pageSize, _offsets[i - 1].last));
     }
   }
   
@@ -80,15 +86,26 @@ class Pit {
    * Generates a page of offset starting at the given sliceIndex with the given [startOffset].
    */
   List<double> generateOffsets(int sliceIndex, double startOffset) {
-    var maxOffset = 300.0;
-    var maxOffsetDelta = 25.0;
+    
+    var maxOffset = 1000.0;
+    var maxOffsetDelta = 9.0;
+
+    // Always move in the opposite direction
+    var targetBias = _rand.nextDouble() / 2.0;
+    if (startOffset < 0.0) {
+      targetBias += 0.5;
+    }
+    
+    var biasRand = new BiasRandom(targetBias, 1.0 + sliceIndex * 4.5, _rand);
     
     var offsets = new List<double>(_pageSize);
     var lastOffset = startOffset;
     
     // Generate offsets
     for (int i = 0; i < offsets.length; i++) {
-      lastOffset = lastOffset + (_offsetGenerator.evaluate(i / 7.0)) * maxOffsetDelta;
+      //lastOffset = lastOffset + (_offsetGenerator.evaluate(i / 7.0)) * maxOffsetDelta;
+      //lastOffset = (_offsetGenerator.evaluate(i / 101.0)) * maxOffsetDelta * 6;
+      lastOffset = lastOffset + (biasRand.nextDouble() * 2 - 1) * maxOffsetDelta;
       lastOffset = lastOffset.clamp(-maxOffset, maxOffset);
       offsets[i] = lastOffset;
     }
@@ -100,8 +117,8 @@ class Pit {
    * Generates a page of widths starting at the given sliceIndex with the given [startWidth].
    */
   List<double> generateWidths(int sliceIndex, double startWidth) {
-    var maxWidth = 400.0;
-    var minWidth = 120.0;
+    var maxWidth = 550.0;
+    var minWidth = 250.0;
     var maxWidthDelta = 50.0;
     
     var widths = new List<double>(_pageSize);
@@ -109,7 +126,9 @@ class Pit {
     
     // Generate widths
     for (int i = 0; i < widths.length; i++) {
-      lastWidth = lastWidth + (_offsetGenerator.evaluate(i / 11.0)) * maxWidthDelta;
+      //lastWidth = lastWidth + (_offsetGenerator.evaluate(i / 11.0)) * maxWidthDelta;
+      //lastWidth = (_offsetGenerator.evaluate(i / 11.0)) * maxWidthDelta * 20;
+      lastWidth = lastWidth + (_rand.nextDouble() * 2 - 1) * maxWidthDelta;
       lastWidth = lastWidth.clamp(minWidth, maxWidth);
       widths[i] = lastWidth;
     }
@@ -234,6 +253,8 @@ class Pit {
     if (firstIndex == 0) {
       var wallPointL = getWallPoint(0, true, scale);
       var wallPointR = getWallPoint(0, false, scale);
+      
+      //c.strokeStyle = '#ff0000';
       
       // Left side
       c.beginPath();

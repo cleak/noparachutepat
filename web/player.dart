@@ -7,18 +7,24 @@ class Player {
   
   static const PIXELS_PER_METER = 100.0;
   static const MAX_STEP = 0.1;
-  static final GRAVITY = new vec2(0, 1.8);
+  //static final GRAVITY = new vec2(0, 1.8);
+  static final GRAVITY = new vec2(0, 2.5);
+  static const SIDE_SPEED = 200.0;
+  static final DRAG = 0.004;
+  
+  bool movingLeft = false;
+  bool movingRight = false;
  
   /**
    * Construct a new default [Player].
    */
   Player() {
+    position = new vec2(0, 0);
+    velocity = new vec2(0, 0);
+    
     boundingRect = new BoundingRect();
     boundingRect.origin = new vec2(0, 0);
     boundingRect.dimensions = new vec2(80, 150);
-    
-    velocity = new vec2(0, 0);
-    position = new vec2(0, 0);
   }
   
   /**
@@ -30,6 +36,15 @@ class Player {
     position += velocity * timePassed * PIXELS_PER_METER; 
     // TODO: Update velocity better.
     velocity += GRAVITY * timePassed;
+    velocity -= velocity * DRAG;
+
+    if (movingLeft) {
+      position.x -= timePassed * SIDE_SPEED;
+    }
+      
+    if (movingRight) {
+      position.x += timePassed * SIDE_SPEED;
+    }
     
     boundingRect.origin = position;
   }
