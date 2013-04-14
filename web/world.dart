@@ -25,6 +25,8 @@ class World {
   /// The rendering context for the main canvas.
   CanvasRenderingContext2D context;
   
+  Blood blood;
+  
   Timer _runTimer;
   
   Player player;
@@ -61,7 +63,7 @@ class World {
     var canvasContainer = query("#canvas-container");
     
     var width = document.body.scrollWidth;
-    var height = document.body.scrollHeight;
+    var height = window.innerHeight;
     
     canvas = new CanvasElement(width:width, height:height);
     canvasContainer.append(canvas);
@@ -76,6 +78,8 @@ class World {
     context.fillStyle = '#111111';
     translation = new vec2(-width / 2, START_Y);
     
+    blood = new Blood(context);
+    
     _rootScene.add((c) => pit.draw(c));
     
     // Create a random rect
@@ -88,6 +92,7 @@ class World {
     updatables.add(player.update);
     updatables.add((double timePassed) {
       if (player.boundingRect.isCollision(pit)) {
+        blood.addSpot(player.boundingRect.getCollisionPoint(pit));
         reset();
       }
     });
@@ -95,14 +100,6 @@ class World {
     _rootScene.add(player.draw);
     
     window.onResize.listen((e) => resize());
-    
-    /*_rootScene.add((c) {
-      if (rect.isCollision(p)) {
-        rect.draw(c, '#ff0000');
-      } else {
-        rect.draw(c, '#0000ff');
-      }
-    });*/
     
     _runTimer = new Timer.periodic(new Duration(milliseconds:(1000.0 / TARGET_FPS).toInt()), _run);
     canvas.onKeyDown.listen((e) {
@@ -131,7 +128,7 @@ class World {
   void updateInput() {
     player.movingLeft = (keys[KeyCode.LEFT] || keys[KeyCode.A]);
     
-    player.movingRight =  (keys[KeyCode.RIGHT] || keys[KeyCode.S]);
+    player.movingRight =  (keys[KeyCode.RIGHT] || keys[KeyCode.S] || keys[KeyCode.D]);
   }
   
   /**
@@ -162,7 +159,7 @@ class World {
    */
   void resize() {
     canvas.width = document.body.scrollWidth;
-    canvas.height = document.body.scrollHeight;
+    canvas.height = window.innerHeight;
   }
   
   /**
@@ -191,6 +188,9 @@ class World {
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.translate(-translation.x, -translation.y);
     context.fillRect(translation.x, translation.y, canvas.width, canvas.height);
+    
+    blood.draw(this);
+    
     context.fillStyle = '#eeeeee';
     if (translation.y < 0) {
       context.fillRect(translation.x, translation.y, canvas.width, math.min(-translation.y + 1, canvas.height));

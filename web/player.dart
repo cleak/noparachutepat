@@ -1,6 +1,7 @@
 part of zz;
 
 class Player {
+  Avatar avatar;
   BoundingRect boundingRect;
   vec2 velocity;
   vec2 position;
@@ -25,6 +26,8 @@ class Player {
     boundingRect = new BoundingRect();
     boundingRect.origin = new vec2(0, 0);
     boundingRect.dimensions = new vec2(80, 150);
+    
+    avatar = new Avatar();
   }
   
   /**
@@ -55,5 +58,6 @@ class Player {
   void draw(World world) {
     // For now, just draw the rect
     boundingRect.draw(world.context, "#1111dd");
+    avatar.draw(world);
   }
 }

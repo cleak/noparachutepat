@@ -6,7 +6,9 @@ import 'dart:math' as math;
 
 import 'package:vector_math/vector_math.dart';
 
+part 'avatar.dart';
 part 'biasrandom.dart';
+part 'blood.dart';
 part 'boundingrect.dart';
 part 'fourierseries.dart';
 part 'interval.dart';

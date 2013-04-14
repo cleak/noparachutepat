@@ -30,16 +30,17 @@ class BoundingRect {
   }
   
   /**
-   * Determines if the current rectangle and the given [pit] collide.
+   * Gets the collision point between the pit and the rectangle.  Returns the
+   * collision point if found, otherwise null.
    */
-  bool isCollision(Pit pit) {
+  vec2 getCollisionPoint(Pit pit) {
     var wallPoints = pit.getInterval(top, bottom);
     
     // Check if any of the all points are in the rectangle.
     for (var i = 0; i < wallPoints.length; i++) {
       for (var j = 0; j < wallPoints[i].length; j++) {
         if (contains(wallPoints[i][j])) {
-          return true;
+          return wallPoints[i][j];
         }
       }
     }
@@ -48,11 +49,18 @@ class BoundingRect {
     var cornerPoints = points;
     for (var i  = 0; i < cornerPoints.length; i++) {
       if (pit.isCollision(cornerPoints[i])) {
-        return true;
+        return cornerPoints[i];
       }
     }
     
-    return false;
+    return null;
+  }
+  
+  /**
+   * Determines if the current rectangle and the given [pit] collide.
+   */
+  bool isCollision(Pit pit) {
+    return getCollisionPoint(pit) != null;
   }
   
   /**
